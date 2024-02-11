@@ -1,0 +1,9 @@
+{% extends "admin/change_list.html" %}
+
+
+{% block object-tools-items %}
+  {{ block.super }}
+  <li>
+    <a href="{% url 'puzzle:import_word_finder' %}" class="link">Import puzzle</a>
+  </li>
+{% endblock %}

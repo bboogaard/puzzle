@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+
+{% block content %}
+<div class="row">
+    <div class="col-md-2"></div>
+    <div class="col-md-8">
+        <div class="board">
+            <div style="text-align: center; padding-bottom: 25px">
+                <h2>Pie Slice</h2>
+            </div>
+            <div id="wrapper"></div>
+            <div class="row">
+                <div class="col-xs-12" style="padding-top: 20px; display: inline-block; text-align: center">
+                    <button class="btn btn-success" id="start" style="display: inline">New game</button>
+                    <input type="text" id="solution" class="form-control" style="width: auto; display: inline">
+                    <button class="btn btn-success" id="guess" style="display: inline" disabled>Guess word</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2"></div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+    {{ block.super }}
+    <script src="{% static 'js/imagepuzzle.jquery.js' %}"></script>
+    <script type="application/javascript">
+    $(function () {
+        $('.board').imagePuzzle({
+            apiUrl: '{% url "api:puzzle" puzzle_type="pie_slice" %}',
+            imageWidth: 600
+        });
+    });
+    </script>
+
+{% endblock %}

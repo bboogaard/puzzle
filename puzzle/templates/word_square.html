@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+
+{% block content %}
+<div class="row">
+    <div class="col-md-2"></div>
+    <div class="col-md-8">
+        <div class="board wordsquare">
+            <div style="text-align: center; padding-bottom: 25px">
+                <h2>WordSquare</h2>
+            </div>
+            <div id="wrapper"></div>
+            <div id="hints"></div>
+            <div class="row">
+                <div class="col-xs-12" style="padding-top: 20px; display: inline-block;text-align: center">
+                    <button class="btn btn-success" id="start" style="display: inline">New game</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2"></div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+    {{ block.super }}
+    <script src="{% static 'js/wordsquare.jquery.js' %}"></script>
+    <script type="application/javascript">
+    $(function () {
+        $('.board').wordSquare({
+            apiUrl: '{% url "api:puzzle" puzzle_type="word_square" %}'
+        });
+    });
+    </script>
+
+{% endblock %}

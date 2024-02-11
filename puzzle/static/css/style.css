@@ -1,0 +1,67 @@
+/* Add some padding inside the card container */
+.container {
+  padding: 10px 16px;
+}
+
+/* Add rounded corners to the top left and the top right corner of the image */
+img {
+  border-radius: 5px 5px 0 0;
+}
+
+.board {
+    width: 70%;
+    margin: auto;
+}
+
+.gridjs-thead {
+    display: none;
+}
+
+.hint.letter-used {
+    text-decoration: line-through;
+    cursor: none;
+}
+
+#wrapper {
+    text-align: center;
+}
+
+/* Wordfinder */
+
+.wordfinder .letter {
+    cursor: pointer;
+}
+
+.wordfinder td.gridjs-td.letter-used {
+    font-weight: bold;
+    background: lightgreen;
+}
+
+/* Wordsquare */
+
+.wordsquare .letter-guess {
+    cursor: pointer;
+}
+
+.wordsquare .letter-add .letter-open::after {
+    content: "?"
+}
+
+.wordsquare td.gridjs-td.letter-add {
+    background: lightgreen;
+}
+
+.wordsquare .hint {
+    cursor: pointer;
+    width: 100px;
+}
+
+.wordsquare .hint.letter-selected {
+    border: 1px solid gray;
+    background: lightgreen;
+}
+
+.wordsquare .hint.letter-used {
+    text-decoration: line-through;
+    cursor: none;
+}
