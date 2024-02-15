@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.test.testcases import TestCase
 
-from puzzle.models import KnightMove, PieSlice, Word, WordFinder, WordSquare
+from puzzle.models import KnightMove, PieSlice, Word, WordFinder, WordLadder, WordSquare
 from puzzle.word_square.models import Slot
 from puzzle.word_square.utils import random
 
@@ -47,18 +47,10 @@ class TestImportKnightMoveView(TestCase):
 
     def test_post(self):
         self.client.login(username='admin', password='welkom')
-        fh = BytesIO(b'N,W,O\r\nR,*,O\r\nO,Z,G')
-        fh = InMemoryUploadedFile(
-            file=fh,
-            field_name='slots',
-            name='slots.csv',
-            content_type='text/csv',
-            size=fh.tell(),
-            charset='utf-8'
-        )
         data = {
             'word': 'woonzorg',
-            'slots': fh
+            'slots': ['N', 'W', 'O', 'R', '*', 'O', 'O', 'Z', 'G'],
+            'slot-size': 3
         }
         response = self.client.post('/puzzle/import-knight-move/', data=data)
         self.assertEqual(response.status_code, 302)
@@ -74,18 +66,10 @@ class TestImportKnightMoveView(TestCase):
 
     def test_post_invalid(self):
         self.client.login(username='admin', password='welkom')
-        fh = BytesIO(b'N,W,O\r\nR,*,O')
-        fh = InMemoryUploadedFile(
-            file=fh,
-            field_name='slots',
-            name='slots.csv',
-            content_type='text/csv',
-            size=fh.tell(),
-            charset='utf-8'
-        )
         data = {
             'word': 'woonzorg',
-            'slots': fh
+            'slots': ['N', 'W', 'O', 'R', '*', 'O'],
+            'slot-size': 3
         }
         response = self.client.post('/puzzle/import-knight-move/', data=data)
         self.assertEqual(response.status_code, 200)
@@ -139,18 +123,10 @@ class TestImportWordFinderView(TestCase):
 
     def test_post(self):
         self.client.login(username='admin', password='welkom')
-        fh = BytesIO(b'A,A,P,E\r\nR,I,E,K\r\nE,Z,E,L\r\nN,E,R,N')
-        fh = InMemoryUploadedFile(
-            file=fh,
-            field_name='slots',
-            name='slots.csv',
-            content_type='text/csv',
-            size=fh.tell(),
-            charset='utf-8'
-        )
         data = {
             'hints': 'aap\r\nriek\r\nezel\r\npeer\r\n',
-            'slots': fh,
+            'slots': ['A', 'A', 'P', 'E', 'R', 'I', 'E', 'K', 'E', 'Z', 'E', 'L', 'N', 'E', 'R', 'N'],
+            'slot-size': 4,
             'solution': 'neen'
         }
         response = self.client.post('/puzzle/import-word-finder/', data=data)
@@ -165,18 +141,9 @@ class TestImportWordFinderView(TestCase):
 
     def test_post_invalid(self):
         self.client.login(username='admin', password='welkom')
-        fh = BytesIO(b'P,A,P,E\r\nR,I,E,K\r\nE,Z,E,L\r\nN,E,R,N')
-        fh = InMemoryUploadedFile(
-            file=fh,
-            field_name='slots',
-            name='slots.csv',
-            content_type='text/csv',
-            size=fh.tell(),
-            charset='utf-8'
-        )
         data = {
             'hints': 'aap\r\nriek\r\nezel\r\npeer\r\n',
-            'slots': fh,
+            'slots': ['P', 'A', 'P', 'E', 'R', 'I', 'E', 'K', 'E', 'Z', 'E', 'L', 'N', 'E', 'R', 'N'],
             'solution': 'en'
         }
         response = self.client.post('/puzzle/import-word-finder/', data=data)
@@ -241,17 +208,9 @@ class TestImportWordSquareView(TestCase):
             Slot(3, 3)
         ]
         self.client.login(username='admin', password='welkom')
-        fh = BytesIO(b'A,B,A,C\r\nL,O,B,E\r\nP,R,E,P\r\nS,A,D,E')
-        fh = InMemoryUploadedFile(
-            file=fh,
-            field_name='slots',
-            name='slots.csv',
-            content_type='text/csv',
-            size=fh.tell(),
-            charset='utf-8'
-        )
         data = {
-            'slots': fh
+            'slots': ["A", "B", "A", "C", "L", "O", "B", "E", "P", "R", "E", "P", "S", "A", "D", "E"],
+            'slot-size': 4
         }
         response = self.client.post('/puzzle/import-word-square/', data=data)
         self.assertEqual(response.status_code, 302)
@@ -276,4 +235,51 @@ class TestImportWordSquareView(TestCase):
         self.client.login(username='admin', password='welkom')
         data = {}
         response = self.client.post('/puzzle/import-word-square/', data=data)
+        self.assertEqual(response.status_code, 200)
+
+
+class TestImportWordLadderView(TestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.user = User.objects.create_user('admin', password='welkom', is_staff=True)
+
+    def test_get(self):
+        self.client.login(username='admin', password='welkom')
+        response = self.client.get('/puzzle/import-word-ladder/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_post(self):
+        self.client.login(username='admin', password='welkom')
+        data = {
+            'slots': [
+                "P", "O", "O", "L", "C", "O", "O", "L", "C", "O", "O", "K", "B", "O", "O", "K",
+                "B", "O", "O", "T", "B", "O", "A", "T", "B", "R", "A", "T"
+            ],
+            'slot-width': 4
+        }
+        response = self.client.post('/puzzle/import-word-ladder/', data=data)
+        self.assertEqual(response.status_code, 302)
+        word_ladder = WordLadder.objects.first()
+        self.assertIsNotNone(word_ladder)
+        self.assertEqual(
+            word_ladder.board.serialize(),
+            [
+                ["P", "O", "O", "L"], [" ", " ", " ", " "], [" ", " ", " ", " "], [" ", " ", " ", " "],
+                [" ", " ", " ", " "], [" ", " ", " ", " "], ["B", "R", "A", "T"]]
+        )
+        self.assertEqual(
+            word_ladder.solution.serialize(),
+            [
+                ["P", "O", "O", "L"], ["C", "O", "O", "L"], ["C", "O", "O", "K"], ["B", "O", "O", "K"],
+                ["B", "O", "O", "T"], ["B", "O", "A", "T"], ["B", "R", "A", "T"]
+            ]
+        )
+        self.assertIsNotNone(word_ladder.image)
+        self.assertIsNotNone(word_ladder.solution_image)
+
+    def test_post_invalid(self):
+        self.client.login(username='admin', password='welkom')
+        data = {}
+        response = self.client.post('/puzzle/import-word-ladder/', data=data)
         self.assertEqual(response.status_code, 200)

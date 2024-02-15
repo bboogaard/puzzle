@@ -21,6 +21,8 @@ from puzzle.word_finder import fields as word_finder_fields
 from puzzle.word_finder import utils as word_finder_utils
 from puzzle.word_finder.exceptions import WordFinderCreateError
 from puzzle.word_finder.models import CreateWordFinderRequest
+from puzzle.word_ladder import fields as word_ladder_fields
+from puzzle.word_ladder import utils as word_ladder_utils
 from puzzle.word_square import fields as word_square_fields
 from puzzle.word_square import utils as word_square_utils
 
@@ -37,7 +39,8 @@ class PuzzleQuerySet(models.QuerySet):
             Puzzle.PuzzleType.KNIGHT_MOVE: KnightMove,
             Puzzle.PuzzleType.PIE_SLICE: PieSlice,
             Puzzle.PuzzleType.WORD_FINDER: WordFinder,
-            Puzzle.PuzzleType.WORD_SQUARE: WordSquare
+            Puzzle.PuzzleType.WORD_SQUARE: WordSquare,
+            Puzzle.PuzzleType.WORD_LADDER: WordLadder
         }.get(obj.puzzle_type)
         return model.objects.get(pk=pk)
 
@@ -49,6 +52,7 @@ class Puzzle(models.Model):
         PIE_SLICE = 'pie_slice', _('Pie slice')
         WORD_FINDER = 'word_finder', _('Word finder')
         WORD_SQUARE = 'word_square', _('Word square')
+        WORD_LADDER = 'word_ladder', _('Word ladder')
 
     image = models.ImageField(null=True, blank=True, upload_to=image_upload_to)
 
@@ -381,7 +385,7 @@ class WordSquare(Puzzle):
 
     board = BoardField(board_class=word_square_fields.Board)
 
-    size = models.PositiveIntegerField(validators=[MaxValueValidator(11)])
+    size = models.PositiveIntegerField(validators=[MaxValueValidator(10)])
 
     solution = BoardField(board_class=word_square_fields.Board)
 
@@ -444,6 +448,85 @@ class WordSquare(Puzzle):
 
         for board_x, y in enumerate(range(0, width, step_size)):
             for board_y, x in enumerate(range(0, height, step_size)):
+                letter = words[board_x][board_y]
+                inc_size = 25
+                draw.text((x + inc_size, y + inc_size), letter, font=font)
+
+        del draw
+
+        fh = BytesIO()
+        image.save(fh, format='PNG')
+        return fh
+
+
+class WordLadder(Puzzle):
+
+    board = BoardField(board_class=word_ladder_fields.Board)
+
+    width = models.PositiveIntegerField(validators=[MaxValueValidator(10)])
+
+    height = models.PositiveIntegerField(validators=[MaxValueValidator(10)])
+
+    solution = BoardField(board_class=word_ladder_fields.Board)
+
+    solution_image = models.ImageField(null=True, blank=True, upload_to=image_upload_to)
+
+    def __str__(self):
+        return 'word ladder'
+
+    def get_puzzle_type(self):
+        return self.PuzzleType.WORD_LADDER
+
+    def get_puzzle_data(self):
+        return {
+            'data': self.board.serialize(),
+            'solution': self.solution.serialize()
+        }
+
+    def generate(self):
+        words = word_ladder_utils.generate_word_ladder(self.width)
+        self.height = len(words)
+        self.solution = word_ladder_fields.Board.deserialize(words)
+        self.board = word_ladder_utils.obfuscate_board(self.solution)
+        self.image.save('word_square.png', self.draw_image(self.board))
+        self.solution_image.save('word_square.png', self.draw_image(self.solution))
+
+    def import_puzzle(self, **kwargs):
+        words = kwargs.get('words', [])
+        self.height = len(words)
+        self.solution = word_ladder_fields.Board.deserialize(words)
+        self.board = word_ladder_utils.obfuscate_board(self.solution)
+        self.image.save('word_ladder.png', self.draw_image(self.board))
+        self.solution_image.save('word_ladder.png', self.draw_image(self.solution))
+
+    def draw_image(self, board: word_ladder_fields.Board) -> BinaryIO:
+        words = board.simple()
+        width = 100 * self.width
+        height = 100 * self.height
+        image = Image.new(mode='L', size=(width + 1, height + 1), color=255)
+
+        # Draw some lines
+        draw = ImageDraw.Draw(image)
+        y_start = 0
+        y_end = height
+        row_step_size = int(width / self.width)
+
+        for x in range(0, width + row_step_size, row_step_size):
+            line = ((x, y_start), (x, y_end))
+            draw.line(line, fill=128)
+
+        x_start = 0
+        x_end = width
+        col_step_size = int(height / self.height)
+
+        for y in range(0, height + col_step_size, col_step_size):
+            line = ((x_start, y), (x_end, y))
+            draw.line(line, fill=128)
+
+        font = ImageFont.truetype(os.path.join(settings.PROJECT_DIR, 'puzzle', 'Arial.ttf'), 50)
+
+        for board_x, y in enumerate(range(0, height, col_step_size)):
+            for board_y, x in enumerate(range(0, width, row_step_size)):
                 letter = words[board_x][board_y]
                 inc_size = 25
                 draw.text((x + inc_size, y + inc_size), letter, font=font)

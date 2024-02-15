@@ -1,0 +1,9 @@
+{% load i18n %}
+
+
+{% if widget.min_width != widget.max_width %}
+    <label for="{{ widget.name }}-width">{% trans 'Columns' %}</label>
+    <input type="number" id="{{ widget.name }}-width" name="{{ widget.name }}-width" value="{{ widget.width }}" size="2" min="{{ widget.min_width }}" max="{{ widget.max_width }}">
+{% else %}
+    <input type="hidden" id="{{ widget.name }}-width" name="{{ widget.name }}-width" value="{{ widget.width }}">
+{% endif %}

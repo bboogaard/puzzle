@@ -1,20 +1,9 @@
 from typing import Any, List
 
 from puzzle.common.fields import Board as BaseBoard
+from puzzle.common.utils import chunks
 from puzzle.knight_move.exceptions import SlotNotAvailableError, SlotOutOfRangeError
 from puzzle.knight_move.models import Slot
-
-
-def chunks(iterable, size):
-    result = []
-    pos = 0
-    while True:
-        chunk = iterable[pos:(pos + size)]
-        if not chunk:
-            break
-        result.append(chunk)
-        pos = pos + size
-    return result
 
 
 class Board(BaseBoard):

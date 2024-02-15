@@ -1,0 +1,9 @@
+{% load i18n %}
+
+
+{% if widget.min_size != widget.max_size %}
+    <label for="{{ widget.name }}-size">{% trans 'Size' %}</label>
+    <input type="number" id="{{ widget.name }}-size" name="{{ widget.name }}-size" value="{{ widget.size }}" size="2" min="{{ widget.min_size }}" max="{{ widget.max_size }}">
+{% else %}
+    <input type="hidden" id="{{ widget.name }}-size" name="{{ widget.name }}-size" value="{{ widget.size }}">
+{% endif %}

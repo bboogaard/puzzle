@@ -3,9 +3,11 @@ from unittest import mock
 from django.core.management import call_command
 from django.test.testcases import TestCase
 
-from puzzle.models import WordSquare
+from puzzle.models import WordLadder, WordSquare
+from puzzle.word_ladder.models import Slot as WordLadderSlot
 from puzzle.word_square.models import Slot as WordSquareSlot
 from puzzle.word_square.utils import random
+
 from tests.puzzle.factories import WordFactory
 
 
@@ -59,3 +61,45 @@ class TestCommands(TestCase):
         )
         self.assertIsNotNone(word_square.image)
         self.assertIsNotNone(word_square.solution_image)
+
+    @mock.patch.object(random, 'choice')
+    def test_generate_word_ladders(self, mock_choice):
+        mock_choice.side_effect = ['QUIZ', 'POOL']
+        WordFactory(word='POOL')
+        WordFactory(word='COOL')
+        WordFactory(word='COOK')
+        WordFactory(word='BOOK')
+        WordFactory(word='BOOT')
+        WordFactory(word='BOAT')
+        WordFactory(word='BRAT')
+
+        def mock_order(instance, *args):
+            if instance.query.is_sliced:
+                raise TypeError("Cannot reorder a query once a slice has been taken.")
+            obj = instance._chain()
+            obj.query.clear_ordering(force=True, clear_default=False)
+            obj.query.add_ordering('word')
+            return obj
+
+        with mock.patch('django.db.models.query.QuerySet.order_by', mock_order):
+            call_command('generate_word_ladders', 4, 1)
+
+        word_ladders = WordLadder.objects.all()
+        self.assertEqual(len(word_ladders), 1)
+        word_ladder = word_ladders[0]
+
+        self.assertEqual(
+            word_ladder.board.serialize(),
+            [
+                ["P", "O", "O", "L"], [" ", " ", " ", " "], [" ", " ", " ", " "], [" ", " ", " ", " "],
+                [" ", " ", " ", " "], [" ", " ", " ", " "], ["B", "R", "A", "T"]]
+        )
+        self.assertEqual(
+            word_ladder.solution.serialize(),
+            [
+                ["P", "O", "O", "L"], ["C", "O", "O", "L"], ["C", "O", "O", "K"], ["B", "O", "O", "K"],
+                ["B", "O", "O", "T"], ["B", "O", "A", "T"], ["B", "R", "A", "T"]
+            ]
+        )
+        self.assertIsNotNone(word_ladder.image)
+        self.assertIsNotNone(word_ladder.solution_image)

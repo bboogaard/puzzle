@@ -1,0 +1,13 @@
+.grid-container {
+     margin-left: 10px;
+}
+.grid-container table {
+    margin-bottom: 20px;
+}
+.grid-container input {
+    text-transform: uppercase;
+}
+.grid-container a.link.disabled {
+    pointer-events: none;
+    opacity: 0.7;
+}

@@ -1,0 +1,7 @@
+{% load i18n %}
+
+
+{% if widget.min_height != widget.max_height %}
+    <a href="" class="link disabled" id="{{ widget.name }}-add-row">{% trans 'Add row' %}</a>&nbsp;
+    <a href="" class="link disabled" id="{{ widget.name }}-delete-row">{% trans 'Delete row' %}</a>
+{% endif %}

@@ -5,8 +5,8 @@ from django.views.generic import TemplateView
 from staff_view.views import StaffView
 
 from puzzle.forms import ImportKnightMoveForm, ImportPieSliceForm, ImportWordFinderForm, ImportWordsForm, \
-    ImportWordSquareForm
-from puzzle.models import KnightMove, PieSlice, WordFinder, WordSquare
+    ImportWordLadderForm, ImportWordSquareForm
+from puzzle.models import KnightMove, PieSlice, WordFinder, WordLadder, WordSquare
 
 
 class KnightMoveView(TemplateView):
@@ -28,6 +28,13 @@ class WordFinderView(TemplateView):
     model = WordFinder
 
     template_name = 'wordfinder.html'
+
+
+class WordLadderView(TemplateView):
+
+    model = WordLadder
+
+    template_name = 'word_ladder.html'
 
 
 class WordSquareView(TemplateView):
@@ -90,3 +97,14 @@ class ImportWordSquareView(StaffView):
     def form_valid(self, form):
         word_square = form.save()
         return redirect(reverse('admin:puzzle_wordsquare_change', args=[word_square.pk]))
+
+
+class ImportWordLadderView(StaffView):
+
+    title = 'Import Word Ladder'
+
+    form_class = ImportWordLadderForm
+
+    def form_valid(self, form):
+        word_ladder = form.save()
+        return redirect(reverse('admin:puzzle_wordladder_change', args=[word_ladder.pk]))

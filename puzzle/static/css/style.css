@@ -65,3 +65,17 @@ img {
     text-decoration: line-through;
     cursor: none;
 }
+
+/* Wordladder */
+
+.wordladder #word {
+    text-transform: uppercase;
+}
+
+.wordladder tr.gridjs-tr.letter-active td {
+    background: lightgreen;
+}
+
+.wordladder tr.gridjs-tr.letter-active div:not(.letter-added)::after {
+    content: "?"
+}

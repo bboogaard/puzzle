@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+
+{% block content %}
+<div class="row">
+    <div class="col-md-2"></div>
+    <div class="col-md-8">
+        <div class="board wordladder">
+            <div style="text-align: center; padding-bottom: 25px">
+                <h2>WordLadder</h2>
+            </div>
+            <div id="wrapper"></div>
+            <div id="hints">
+                <input type="text" id="word" class="form-control">
+            </div>
+            <div class="row">
+                <div class="col-xs-12" style="padding-top: 20px; display: inline-block;text-align: center">
+                    <button class="btn btn-success" id="start" style="display: inline">New game</button>
+                    <button class="btn btn-success" id="guess" style="display: inline">Guess</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2"></div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+    {{ block.super }}
+    <script src="{% static 'js/wordladder.jquery.js' %}"></script>
+    <script type="application/javascript">
+    $(function () {
+        $('.board').wordLadder({
+            apiUrl: '{% url "api:puzzle" puzzle_type="word_ladder" %}'
+        });
+    });
+    </script>
+
+{% endblock %}

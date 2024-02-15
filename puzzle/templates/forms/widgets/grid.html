@@ -1,0 +1,51 @@
+{% load i18n %}
+
+
+<div class="grid-container">
+    {% if widget.is_square %}
+        {% include 'forms/widgets/grid.size.html' %}
+    {% else %}
+        {% include 'forms/widgets/grid.columns.html' %}
+    {% endif %}
+    <table id="{{ widget.name }}-table">
+        {% for row in widget.value %}
+        <tr>
+            {% with forloop.counter as row_num %}
+                {% for slot in row %}
+                <td>
+                    {% with forloop.counter as col_num %}
+                    <input type="text" name="{{ widget.name }}" id="{{ widget.name }}-{{ row_num }}-{{ col_num }}" value="{{ slot }}" size="2" maxlength="1">
+                    {% endwith %}
+                </td>
+                {% endfor %}
+            {% endwith %}
+        </tr>
+        {% endfor %}
+    </table>
+    {% if not widget.is_square %}
+        {% include 'forms/widgets/grid.links.html' %}
+    {% endif %}
+</div>
+<script type="application/javascript">
+    (function () {
+        {% if widget.is_square %}
+        document.addEventListener("DOMContentLoaded", function () {
+            let gridManager = new SquareGridManager({
+                widgetName: "{{ widget.name }}"
+            });
+            gridManager.init();
+        });
+        {% else %}
+        document.addEventListener("DOMContentLoaded", function () {
+            let gridManager = new GridManager({
+                widgetName: "{{ widget.name }}",
+                minWidth: {{ widget.min_width }},
+                maxWidth: {{ widget.max_width }},
+                minHeight: {{ widget.min_height }},
+                maxHeight: {{ widget.max_height }}
+            });
+            gridManager.init();
+        });
+        {% endif %}
+    })();
+</script>

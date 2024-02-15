@@ -4,8 +4,10 @@ from django.core.validators import ValidationError
 from django.test.testcases import TestCase
 
 from puzzle.knight_move.utils import random
-from puzzle.models import KnightMove, PieSlice, WordFinder, WordSquare
+from puzzle.models import KnightMove, PieSlice, WordFinder, WordLadder, WordSquare
 from puzzle.word_finder.models import Slot
+from puzzle.word_ladder.exceptions import WordLadderCreateError
+from puzzle.word_ladder.models import Slot as WordLadderSlot
 from puzzle.word_square.exceptions import WordSquareCreateError
 from puzzle.word_square.models import Slot as WordSquareSlot
 from tests.puzzle.factories import WordFactory
@@ -181,4 +183,64 @@ class TestWordSquare(TestCase):
         with mock.patch('django.db.models.query.QuerySet.order_by', mock_order):
             with self.assertRaises(WordSquareCreateError):
                 puzzle = WordSquare(size=4)
+                puzzle.save()
+
+
+class TestWordLadder(TestCase):
+
+    @mock.patch.object(random, 'choice')
+    def test_generate(self, mock_choice):
+        mock_choice.return_value = 'POOL'
+        WordFactory(word='POOL')
+        WordFactory(word='COOL')
+        WordFactory(word='COOK')
+        WordFactory(word='BOOK')
+        WordFactory(word='BOOT')
+        WordFactory(word='BOAT')
+        WordFactory(word='BRAT')
+
+        def mock_order(instance, *args):
+            if instance.query.is_sliced:
+                raise TypeError("Cannot reorder a query once a slice has been taken.")
+            obj = instance._chain()
+            obj.query.clear_ordering(force=True, clear_default=False)
+            obj.query.add_ordering('word')
+            return obj
+
+        with mock.patch('django.db.models.query.QuerySet.order_by', mock_order):
+            puzzle = WordLadder(width=4)
+            puzzle.save()
+
+        self.assertEqual(
+            puzzle.board.serialize(),
+            [
+                ["P", "O", "O", "L"], [" ", " ", " ", " "], [" ", " ", " ", " "], [" ", " ", " ", " "],
+                [" ", " ", " ", " "], [" ", " ", " ", " "], ["B", "R", "A", "T"]]
+        )
+        self.assertEqual(
+            puzzle.solution.serialize(),
+            [
+                ["P", "O", "O", "L"], ["C", "O", "O", "L"], ["C", "O", "O", "K"], ["B", "O", "O", "K"],
+                ["B", "O", "O", "T"], ["B", "O", "A", "T"], ["B", "R", "A", "T"]
+            ]
+        )
+        self.assertIsNotNone(puzzle.image)
+        self.assertIsNotNone(puzzle.solution_image)
+
+    @mock.patch.object(random, 'choice')
+    def test_generate_with_error(self, mock_choice):
+        mock_choice.return_value = 'POOL'
+        WordFactory(word='POOL')
+
+        def mock_order(instance, *args):
+            if instance.query.is_sliced:
+                raise TypeError("Cannot reorder a query once a slice has been taken.")
+            obj = instance._chain()
+            obj.query.clear_ordering(force=True, clear_default=False)
+            obj.query.add_ordering('word')
+            return obj
+
+        with mock.patch('django.db.models.query.QuerySet.order_by', mock_order):
+            with self.assertRaises(WordLadderCreateError):
+                puzzle = WordLadder(width=4)
                 puzzle.save()
